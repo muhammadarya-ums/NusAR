@@ -3,27 +3,11 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  // Ditetapkan agar semua path gambar/link otomatis menggunakan domain absolut
-  metadataBase: new URL('https://nusar.vercel.app'),
   title: 'NusAR | Explore, Learn, Imagine',
   description: 'An immersive AR/VR learning experience for curious explorers.',
-  generator: 'NusAR',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
   openGraph: {
     title: 'NusAR | Explore, Learn, Imagine',
@@ -32,10 +16,10 @@ export const metadata: Metadata = {
     siteName: 'NusAR',
     images: [
       {
-        url: '/apple-icon.png', // Bisa diganti dengan /og-image.png jika kamu ada gambar banner khusus
+        url: 'https://nusar.vercel.app/icon.png',
         width: 1200,
         height: 630,
-        alt: 'NusAR Preview Image',
+        alt: 'NusAR Logo',
       },
     ],
     locale: 'en_US',
@@ -45,14 +29,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'NusAR | Explore, Learn, Imagine',
     description: 'An immersive AR/VR learning experience for curious explorers.',
-    images: ['/apple-icon.png'],
+    images: ['https://nusar.vercel.app/icon.png'],
   },
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light',
   themeColor: '#fffdfa',
-  userScalable: false,
 }
 
 export default function RootLayout({
