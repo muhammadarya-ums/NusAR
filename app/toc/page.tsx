@@ -1,24 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation' // <-- 1. Import useRouter
+import { useRouter } from 'next/navigation'
 import { BookOpen, Check, ChevronRight, Circle, Map, Menu, Star, X } from 'lucide-react'
 
-// 2. Tambahkan rute (path) di elemen ke-4 setiap array
+// 1. Data Intro: Path diubah dari '#' menjadi '/pendahuluan'
 const introRows = [
-  ['1', 'Welcome to Numeration!', 'Meet your learning adventure', '#'],
-  ['2', 'Meet Cak and Ning', 'Your friendly learning guides', '#'],
-  ['3', 'Our Learning Map', 'Discover the journey ahead', '#'],
-  ['4', 'What is Numeration?', 'Numbers are all around us', '#'],
-  ['5', 'Why Numeration Matters', 'Numbers help us every day', '#'],
-  ['6', "Let's Get Ready!", 'Prepare for your first activity', '#'],
+  ['1', 'Kata Pengantar', 'Pengenalan E-Modul NusAR', '/pendahuluan'],
+  ['2', 'Pendahuluan & Identitas', 'Sasaran dan pendekatan modul', '/pendahuluan'],
+  ['3', 'Petunjuk Penggunaan', 'Panduan untuk guru & orang tua', '/pendahuluan'],
+  ['4', 'Peta Konsep', 'Alur 3 unit pembelajaran', '/pendahuluan'],
+  ['5', 'Capaian Pembelajaran', 'Target kompetensi tiap level', '/pendahuluan'],
+  ['6', 'Tujuan Pembelajaran', 'Manfaat literasi & mitigasi', '/pendahuluan'],
 ]
 
+// 2. Data Stage disesuaikan dengan 3 Unit Pembelajaran + 1 Lampiran
 const stageRows = [
-  ['7–10', 'Stage 1: Numbers Around Us', 'Count, compare, and explore', '/stage1'],
-  ['11–14', 'Stage 2: Add and Subtract', 'Put numbers together', '/stage2'],
-  ['15–16', 'Stage 3: Shapes and Patterns', 'Find shapes everywhere', '/stage3'],
-  ['17–19', 'Stage 4: Time and Measurement', 'Measure the world around us', '/stage4'], // Disesuaikan mengarah ke folder stage4
+  ['7–10', 'Unit 1: Numerasi Dasar', 'Bilangan & Berhitung di Kenjeran', '/stage1'],
+  ['11–13', 'Unit 2: Ruang & Waktu', 'Menyusuri Peneleh, Menuju Tugu Pahlawan', '/stage2'],
+  ['14–16', 'Unit 3: Mitigasi Bencana', 'Siaga Bencana Pesisir Kenjeran', '/stage3'],
+  ['17–19', 'Rangkuman & Lampiran', 'Lembar observasi dan glosarium', '/rangkuman'],
 ]
 
 const progress = Array.from({ length: 20 }, (_, i) => i + 1)
@@ -34,31 +35,30 @@ function Mascots() {
       <div className="speech ning">Ning</div>
       <div className="mascot cak-person"><span className="face">●</span><b>C</b></div>
       <div className="mascot ning-person"><span className="face">●</span><b>N</b></div>
-      <div className="map-art"><Map /><span>Explore<br />Indonesia</span></div>
+      <div className="map-art"><Map /><span>Jelajah<br />Surabaya</span></div>
     </div>
   ) 
 }
 
-// 3. Destructure array untuk menerima 'path' dan implementasi onClick
 function Section({ title, tone, icon: Icon, rows }: { title: string; tone: string; icon: typeof BookOpen; rows: string[][] }) { 
-  const router = useRouter(); // Panggil hook router di sini
+  const router = useRouter()
   
   return (
     <section className={`toc-section ${tone}`}>
       <div className="section-label">
         <Icon />
         <strong>{title}</strong>
-        <small>{tone === 'blue-section' ? 'Introduction' : tone === 'green-section' ? 'Stage 1–4' : 'Closing'}</small>
+        <small>{tone === 'blue-section' ? 'Pendahuluan' : tone === 'green-section' ? 'Unit Belajar' : 'Penutup'}</small>
       </div>
       <div className="section-rows">
+        {/* 3. Eksekusi router.push berjalan jika path valid */}
         {rows.map(([page, name, sub, path]) => (
           <button 
             className="toc-row" 
             key={page + name}
             onClick={() => {
-              // Validasi agar tidak nge-route kalau tujuannya cuma '#' (seperti intro pages)
               if (path && path !== '#') {
-                router.push(path);
+                router.push(path)
               }
             }}
           >
@@ -82,47 +82,47 @@ export default function Page() {
   return (
     <main className="toc-shell">
       <header className="toc-header">
-        <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Open menu">
+        <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Buka menu">
           {menuOpen ? <X /> : <Menu />}
         </button>
         <Brand />
         <div className="title-pill">
           <BookOpen />
-          <h1>Numeration E-Module <span>Table of Contents</span></h1>
+          <h1>E-Modul NusAR <span>Daftar Isi</span></h1>
           <BookOpen />
         </div>
-        <div className="header-progress"><b>{selected}</b><small>of 20 pages</small></div>
+        <div className="header-progress"><b>{selected}</b><small>dari 20 halaman</small></div>
       </header>
       
       <div className="toc-layout">
         <aside className={`mascot-side ${menuOpen ? 'open' : ''}`}>
           <Mascots />
-          <p>Learn with Cak<br />and Ning!</p>
+          <p>Belajar bareng<br />Cak dan Ning!</p>
         </aside>
         
         <section className="main-toc">
-          <div className="table-head"><span>Page</span><span>Page Title</span><span>Mini icons</span></div>
-          <Section title="Section 1" tone="blue-section" icon={BookOpen} rows={introRows} />
-          <Section title="Section 2" tone="green-section" icon={Circle} rows={stageRows} />
-          {/* Tambahkan elemen ke-4 '#' untuk closing page agar struktur array sama */}
-          <Section title="Section 3" tone="orange-section" icon={Star} rows={[["20", 'Great Job!', 'You did it!', '#']]} />
+          <div className="table-head"><span>Hal</span><span>Judul Halaman</span><span>Ikon</span></div>
+          {/* Mapping Data yang sudah diperbaiki ke komponen Section */}
+          <Section title="Bagian 1" tone="blue-section" icon={BookOpen} rows={introRows} />
+          <Section title="Bagian 2" tone="green-section" icon={Circle} rows={stageRows} />
+          <Section title="Bagian 3" tone="orange-section" icon={Star} rows={[["20", 'Kerja Bagus!', 'Kamu berhasil menyelesaikannya!', '#']]} />
         </section>
         
         <aside className="progress-panel">
-          <h2>20-Page Progress</h2>
+          <h2>Progres 20 Halaman</h2>
           <div className="progress-grid">
             {progress.map((page) => (
               <button 
                 key={page} 
                 className={page <= selected ? 'done' : ''} 
                 onClick={() => setSelected(page)} 
-                aria-label={`Go to page ${page}`}
+                aria-label={`Pergi ke halaman ${page}`}
               >
                 <span>{page <= selected ? <Check /> : page}</span>
               </button>
             ))}
           </div>
-          <p>Tap a page to begin learning</p>
+          <p>Sentuh judul bab untuk mulai belajar</p>
         </aside>
       </div>
     </main>
