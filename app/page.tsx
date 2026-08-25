@@ -106,8 +106,20 @@ export default function Page() {
         <div className="content">
           <div className="intro"><div><p className="eyebrow">EXPLORE · LEARN · IMAGINE</p><h1>Make learning <em>magical.</em></h1><p className="intro-sub">Bring every lesson to life with augmented reality.</p></div><div className="ethno-pill">Ethno-<b>STEAM</b></div></div>
 
-          <button className={`scan-hero ${scanStarted ? 'scan-active' : ''}`} onClick={() => setScanStarted(true)} aria-label="Start AR and VR scanning">
-            <div className="scan-copy"><div className="scan-icon"><QrCode /></div><div><h2>{scanStarted ? 'READY TO SCAN' : 'SCAN'}</h2><p>{scanStarted ? 'Point your camera at an object' : 'Tap to start AR/VR scanning'}</p></div></div><ScanArtwork /><ArrowRight className="hero-arrow" />
+          <button 
+            className={`scan-hero ${scanStarted ? 'scan-active' : ''}`} 
+            onClick={() => router.push('/scan')} 
+            aria-label="Start AR and VR scanning"
+          >
+            <div className="scan-copy">
+              <div className="scan-icon"><QrCode /></div>
+              <div>
+                <h2>SCAN MODUL</h2>
+                <p>Ketuk untuk membuka kamera AR</p>
+              </div>
+            </div>
+            <ScanArtwork />
+            <ArrowRight className="hero-arrow" />
           </button>
           <div className="tip"><span className="tip-icon"><Lightbulb /></span><p><strong>Point your camera</strong> at the image or object to explore in AR/VR!</p><span className="bot">●</span></div>
 
