@@ -10,30 +10,21 @@ export default function ScanPage() {
   
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [errorMsg, setErrorMsg] = useState<string>('')
+  // STATE BARU: Untuk menyimpan aliran video dari kamera
+  const [stream, setStream] = useState<MediaStream | null>(null)
 
+  // 1. Hook untuk menyalakan kamera dan menyimpan stream-nya
   useEffect(() => {
-    let mediaStream: MediaStream | null = null;
+    let activeStream: MediaStream | null = null;
 
     const startCamera = async () => {
       try {
-        // Meminta akses kamera dengan prioritas kamera belakang (environment)
-        const stream = await navigator.mediaDevices.getUserMedia({
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' }
         });
         
-        mediaStream = stream;
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          
-          // FIX KHUSUS iOS/IPHONE: 
-          // Apple butuh trigger play() eksplisit setelah metadata ter-load
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(err => {
-              console.error("Gagal play video di iOS:", err);
-            });
-          };
-        }
+        activeStream = mediaStream;
+        setStream(mediaStream); // Simpan stream ke state
         setHasPermission(true);
       } catch (err: any) {
         console.error("Error accessing camera:", err);
@@ -50,13 +41,24 @@ export default function ScanPage() {
 
     startCamera();
 
-    // Cleanup function: Matikan kamera saat user keluar dari halaman ini
     return () => {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
       }
     };
   }, []);
+
+  // 2. Hook BARU: Memasukkan stream ke tag <video> SETELAH tag-nya di-render oleh React
+  useEffect(() => {
+    if (hasPermission && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      
+      // Auto-play paksa untuk iOS (wajib setelah srcObject terisi)
+      videoRef.current.play().catch(err => {
+        console.error("Gagal auto-play di iOS:", err);
+      });
+    }
+  }, [hasPermission, stream]);
 
   return (
     <main className="relative w-full h-screen bg-black overflow-hidden flex flex-col items-center justify-center">
@@ -73,36 +75,29 @@ export default function ScanPage() {
         <div className="bg-black/50 text-white px-4 py-2 rounded-full backdrop-blur-md font-bold text-sm tracking-wide">
           AR SCANNER
         </div>
-        <div className="w-12" /> {/* Spacer untuk menyeimbangkan layout */}
+        <div className="w-12" />
       </header>
 
       {/* RENDER VIDEO KAMERA */}
       {hasPermission === true && (
         <>
-          {/* FIX KHUSUS iOS: Tambahkan atribut playsInline (wajib pakai camelCase di React) */}
           <video 
             ref={videoRef} 
-            autoPlay 
-            playsInline 
-            muted 
+            autoPlay={true}
+            playsInline={true} 
+            muted={true}
             className="absolute inset-0 w-full h-full object-cover"
           />
           
           {/* UI VIEWFINDER (Garis Kotak Scanner & Laser Animasi) */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-            {/* Area gelap di luar kotak scan */}
             <div className="absolute inset-0 bg-black/40" />
             
-            {/* Kotak Scan Transparan */}
             <div className="relative w-[280px] h-[280px] md:w-[400px] md:h-[400px] bg-transparent shadow-[0_0_0_9999px_rgba(0,0,0,0.4)] rounded-2xl overflow-hidden">
-              
-              {/* Sudut-sudut pembatas (Corners) */}
               <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-blue-400 rounded-tl-2xl" />
               <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-blue-400 rounded-tr-2xl" />
               <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-blue-400 rounded-bl-2xl" />
               <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-blue-400 rounded-br-2xl" />
-              
-              {/* Garis Laser Animasi */}
               <div className="absolute top-0 left-0 w-full h-1 bg-blue-400/80 shadow-[0_0_8px_2px_rgba(59,130,246,0.6)] animate-[scan_3s_ease-in-out_infinite]" />
             </div>
           </div>
