@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation' // <-- 1. Import useRouter dari Next.js
+import { useRouter } from 'next/navigation'
 import {
   ArrowRight,
   BarChart3,
@@ -26,7 +26,6 @@ import {
   X,
 } from 'lucide-react'
 
-// 2. Tambahkan properti 'path' ke masing-masing halaman tujuan
 const modules = [
   { label: 'My Modules', icon: BookOpen, tone: 'lavender', path: '/toc' },
   { label: 'Activities', icon: Check, tone: 'sky', path: '/stage1' },
@@ -48,12 +47,13 @@ const quickAccess = [
   { label: 'Settings', icon: Settings, tone: 'blue' },
 ]
 
+// 1. Tambahkan properti 'path' ke navItems
 const navItems = [
-  { label: 'Home', icon: Compass },
-  { label: 'Modules', icon: BookOpen },
-  { label: 'Scan', icon: ScanLine },
-  { label: 'Progress', icon: BarChart3 },
-  { label: 'Profile', icon: CircleUserRound },
+  { label: 'Home', icon: Compass, path: '/' },
+  { label: 'Modules', icon: BookOpen, path: '/toc' },
+  { label: 'Scan', icon: ScanLine, path: '/scan' }, // Path ke halaman scanner
+  { label: 'Progress', icon: BarChart3, path: '#' },
+  { label: 'Profile', icon: CircleUserRound, path: '#' },
 ]
 
 function Brand() {
@@ -78,7 +78,7 @@ function ScanArtwork() {
 }
 
 export default function Page() {
-  const router = useRouter() // <-- 3. Inisialisasi router di dalam komponen utama
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('Home')
   const [scanStarted, setScanStarted] = useState(false)
@@ -89,9 +89,24 @@ export default function Page() {
       <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-top"><Brand /><button className="close-menu" onClick={() => setMenuOpen(false)} aria-label="Close menu"><X /></button></div>
         <p className="sidebar-label">LEARN WITH NUSAR</p>
+        
+        {/* 2. Update navigasi Sidebar Desktop */}
         <nav className="side-nav" aria-label="Main navigation">
-          {navItems.map(({ label, icon: Icon }) => <button key={label} className={activeNav === label ? 'active' : ''} onClick={() => { setActiveNav(label); setMenuOpen(false) }}><Icon /><span>{label}</span></button>)}
+          {navItems.map(({ label, icon: Icon, path }) => (
+            <button 
+              key={label} 
+              className={activeNav === label ? 'active' : ''} 
+              onClick={() => { 
+                setActiveNav(label)
+                setMenuOpen(false)
+                if (path && path !== '#') router.push(path)
+              }}
+            >
+              <Icon /><span>{label}</span>
+            </button>
+          ))}
         </nav>
+        
         <div className="sidebar-card"><Sparkles /><strong>Keep exploring!</strong><span>New adventures are waiting.</span></div>
       </aside>
 
@@ -125,7 +140,6 @@ export default function Page() {
 
           <SectionTitle title="E-MODULE" action="View all" />
           
-          {/* 4. Implementasi onClick dan router.push pada grid modul */}
           <div className="module-grid">
             {modules.map(({ label, icon: Icon, tone, path }) => (
               <button 
@@ -147,7 +161,21 @@ export default function Page() {
         </div>
       </div>
 
-      <nav className="bottom-nav" aria-label="Mobile navigation">{navItems.map(({ label, icon: Icon }) => <button key={label} className={activeNav === label ? 'active' : ''} onClick={() => setActiveNav(label)}><Icon /><span>{label}</span></button>)}</nav>
+      {/* 3. Update navigasi Bottom Bar Mobile */}
+      <nav className="bottom-nav" aria-label="Mobile navigation">
+        {navItems.map(({ label, icon: Icon, path }) => (
+          <button 
+            key={label} 
+            className={activeNav === label ? 'active' : ''} 
+            onClick={() => {
+              setActiveNav(label)
+              if (path && path !== '#') router.push(path)
+            }}
+          >
+            <Icon /><span>{label}</span>
+          </button>
+        ))}
+      </nav>
     </main>
   )
 }
