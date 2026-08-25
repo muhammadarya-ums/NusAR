@@ -25,6 +25,14 @@ export default function ScanPage() {
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          
+          // FIX KHUSUS iOS/IPHONE: 
+          // Apple butuh trigger play() eksplisit setelah metadata ter-load
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(err => {
+              console.error("Gagal play video di iOS:", err);
+            });
+          };
         }
         setHasPermission(true);
       } catch (err: any) {
@@ -71,6 +79,7 @@ export default function ScanPage() {
       {/* RENDER VIDEO KAMERA */}
       {hasPermission === true && (
         <>
+          {/* FIX KHUSUS iOS: Tambahkan atribut playsInline (wajib pakai camelCase di React) */}
           <video 
             ref={videoRef} 
             autoPlay 
@@ -93,7 +102,7 @@ export default function ScanPage() {
               <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-blue-400 rounded-bl-2xl" />
               <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-blue-400 rounded-br-2xl" />
               
-              {/* Garis Laser Animasi (Membutuhkan custom class di CSS jika tidak jalan, tapi ini pakai class bawaan) */}
+              {/* Garis Laser Animasi */}
               <div className="absolute top-0 left-0 w-full h-1 bg-blue-400/80 shadow-[0_0_8px_2px_rgba(59,130,246,0.6)] animate-[scan_3s_ease-in-out_infinite]" />
             </div>
           </div>
@@ -132,7 +141,7 @@ export default function ScanPage() {
         @keyframes scan {
           0%, 100% { transform: translateY(0); opacity: 0; }
           10%, 90% { opacity: 1; }
-          50% { transform: translateY(276px); } /* Sesuaikan tinggi kotak - 4px */
+          50% { transform: translateY(276px); } 
         }
         @media (min-width: 768px) {
           @keyframes scan {
