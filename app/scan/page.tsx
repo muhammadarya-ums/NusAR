@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, CameraOff, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react'
 import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library'
@@ -13,93 +13,92 @@ export default function ScanPage() {
   const [errorMsg, setErrorMsg] = useState<string>('')
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [scannedResult, setScannedResult] = useState<string | null>(null)
-  
   const [isScanning, setIsScanning] = useState<boolean>(true)
-  // Ref ini berfungsi sebagai saklar "pause/resume" tanpa perlu me-restart useEffect
+  
   const isScanningRef = useRef<boolean>(true)
 
-  // Sinkronkan state isScanning ke isScanningRef
   useEffect(() => {
     isScanningRef.current = isScanning
   }, [isScanning])
 
-  // 1. Hook menyalakan kamera
+  // Fungsi reusable untuk menyalakan kamera
+  const startCamera = useCallback(async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setHasPermission(false);
+      setErrorMsg('Akses kamera diblokir. Pastikan Anda menggunakan koneksi HTTPS.');
+      return;
+    }
+
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      setStream(mediaStream);
+      setHasPermission(true);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        await videoRef.current.play().catch(console.error);
+      }
+    } catch (err: any) {
+      console.error("Error accessing camera:", err);
+      setHasPermission(false);
+      if (err.name === 'NotAllowedError') {
+        setErrorMsg('Izin kamera ditolak. Silakan izinkan akses kamera di pengaturan browser Anda.');
+      } else if (err.name === 'NotFoundError') {
+        setErrorMsg('Kamera tidak ditemukan pada perangkat ini.');
+      } else {
+        setErrorMsg('Terjadi kesalahan saat mengakses kamera.');
+      }
+    }
+  }, []);
+
+  // 1. Hook menyalakan kamera saat pertama kali mount
   useEffect(() => {
-    let activeStream: MediaStream | null = null;
-
-    const startCamera = async () => {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setHasPermission(false);
-        setErrorMsg('Akses kamera diblokir. Pastikan Anda menggunakan koneksi HTTPS.');
-        return;
-      }
-
-      try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        });
-
-        activeStream = mediaStream;
-        setStream(mediaStream);
-        setHasPermission(true);
-      } catch (err: any) {
-        console.error("Error accessing camera:", err);
-        setHasPermission(false);
-        if (err.name === 'NotAllowedError') {
-          setErrorMsg('Izin kamera ditolak. Silakan izinkan akses kamera di pengaturan browser Anda.');
-        } else if (err.name === 'NotFoundError') {
-          setErrorMsg('Kamera tidak ditemukan pada perangkat ini.');
-        } else {
-          setErrorMsg('Terjadi kesalahan saat mengakses kamera.');
-        }
-      }
-    };
-
     startCamera();
 
     return () => {
-      if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [startCamera]);
 
   // 2. Hook memasukkan stream ke video element
   useEffect(() => {
     if (hasPermission && stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(err => {
-        console.error("Gagal auto-play:", err);
-      });
+      if (videoRef.current.srcObject !== stream) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(err => {
+          console.error("Gagal auto-play:", err);
+        });
+      }
     }
   }, [hasPermission, stream]);
 
-  // 3. Hook proses decoding Barcode / QR Code (HANYA JALAN SEKALI SAAT STREAM READY)
+  // 3. Hook proses decoding Barcode / QR Code
   useEffect(() => {
     if (!hasPermission || !stream || !videoRef.current) return;
 
     const codeReader = new BrowserMultiFormatReader();
     let active = true;
 
-    const startScanning = async () => {
+    const runScanner = async () => {
       while (active && videoRef.current) {
-        // Hanya lakukan proses scan jika saklar (ref) dalam keadaan true
         if (isScanningRef.current) {
           try {
             const result = await codeReader.decodeFromVideoElement(videoRef.current);
 
-            // Jika berhasil menemukan hasil dan posisi masih aktif scan
             if (result && active && isScanningRef.current) {
               const text = result.getText();
               
-              // Matikan saklar scan segera agar tidak berulang
               isScanningRef.current = false;
               setIsScanning(false);
               setScannedResult(text);
 
               if (navigator.vibrate) navigator.vibrate(200);
 
-              // Auto-Redirect
               if (text.startsWith('http://') || text.startsWith('https://')) {
                 window.location.href = text;
               } else if (text.startsWith('/')) {
@@ -113,25 +112,32 @@ export default function ScanPage() {
           }
         }
 
-        // Timer interval selalu berjalan (termasuk saat dipause)
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
     };
 
-    startScanning();
+    runScanner();
 
-    // Pembersihan hanya terjadi ketika komponen di-unmount (keluar halaman)
     return () => {
       active = false;
       codeReader.reset();
     };
-  }, [hasPermission, stream, router]); 
-  // Perhatikan: isScanning sengaja dihapus dari dependency array di atas agar useEffect tidak restart.
+  }, [hasPermission, stream, router]);
 
-  // Fungsi untuk reset state agar bisa scan ulang
-  const handleResetScan = () => {
+  // Fungsi untuk reset state dan merefresh stream kamera agar tidak blank hitam
+  const handleResetScan = async () => {
     setScannedResult(null);
-    setIsScanning(true); // Ini akan meng-update isScanningRef ke true secara otomatis
+    
+    // Matikan track lama jika ada agar hardware kamera tidak bentrok
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
+    // Ambil stream kamera baru yang bersih
+    await startCamera();
+    
+    setIsScanning(true);
+    isScanningRef.current = true;
   };
 
   return (
