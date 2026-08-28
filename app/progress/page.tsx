@@ -1,64 +1,140 @@
-// file: app/progress/page.tsx
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trophy, X, BookOpen, Clock } from 'lucide-react'
+import {
+  BarChart3, BookOpen, CircleUserRound, Compass, ScanLine, X, Menu, ChevronRight, Trophy, Sparkles
+} from 'lucide-react'
 import { useUser } from '../context/UserContext'
+
+// Navigasi yang sama dengan Home
+const navItems = [
+  { label: 'Home', icon: Compass, path: '/' },
+  { label: 'Modules', icon: BookOpen, path: '/toc' },
+  { label: 'Scan', icon: ScanLine, path: '/scan' },
+  { label: 'Progress', icon: BarChart3, path: '/progress' },
+  { label: 'Profile', icon: CircleUserRound, path: '/profile' },
+]
+
+function Brand() {
+  return (
+    <div className="brand" aria-label="NusAR home">
+      <span className="brand-mark">⌁</span>
+      <span className="brand-nus">Nus</span><span className="brand-ar">AR</span>
+    </div>
+  )
+}
 
 export default function ProgressPage() {
   const router = useRouter()
+  const [menuOpen, setMenuOpen] = useState(false)
+  
+  // Set default aktif ke 'Progress'
+  const [activeNav, setActiveNav] = useState('Progress')
+  
   const { user, progress } = useUser()
 
   return (
-    <main className="min-h-screen bg-black text-white p-6">
-      <header className="w-full flex justify-between items-center mb-10">
-        <button onClick={() => router.push('/')} className="p-3 bg-white/10 rounded-full">
-          <X size={24} />
-        </button>
-        <h1 className="font-bold text-xl">Progres Belajar</h1>
-        <div className="w-12" />
-      </header>
+    <main className="nusar-shell">
+      {/* SIDEBAR */}
+      <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
+        <div className="sidebar-top"><Brand /><button className="close-menu" onClick={() => setMenuOpen(false)} aria-label="Close menu"><X /></button></div>
+        <p className="sidebar-label">LEARN WITH NUSAR</p>
+        <nav className="side-nav" aria-label="Main navigation">
+          {navItems.map(({ label, icon: Icon, path }) => (
+            <button key={label} className={activeNav === label ? 'active' : ''} onClick={() => { setActiveNav(label); setMenuOpen(false); if (path && path !== '#') router.push(path); }}>
+              <Icon /><span>{label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-card"><Sparkles /><strong>Keep exploring!</strong><span>New adventures are waiting.</span></div>
+      </aside>
 
-      {!user ? (
-        <div className="text-center mt-20">
-          <Trophy size={64} className="text-gray-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold">Kamu belum masuk!</h2>
-          <p className="text-gray-400 mt-2">Masuk ke Profil dulu untuk melihat progres belajarmu.</p>
-          <button onClick={() => router.push('/profile')} className="mt-6 bg-blue-500 px-6 py-3 rounded-full font-bold">Ke Profil</button>
-        </div>
-      ) : (
-        <div>
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-3xl mb-8 flex items-center justify-between">
+      <div className="page-wrap">
+        {/* TOPBAR */}
+        <header className="topbar">
+          <button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Open menu"><Menu /></button>
+          <div className="mobile-brand"><Brand /></div>
+          <div className="topbar-copy"><p>Your Journey</p><span>Track your learning</span></div>
+          <button className="profile-button" onClick={() => router.push('/profile')} aria-label="Open profile">
+            <span className="avatar-face">✦</span><span className="profile-name">{user ? user : 'Masuk'}</span><ChevronRight />
+          </button>
+        </header>
+
+        {/* CONTENT PROGRESS */}
+        <div className="content">
+          <div className="intro">
             <div>
-              <p className="text-white/80 font-medium">Total Aktivitas</p>
-              <p className="text-4xl font-black">{progress.length}</p>
+              <p className="eyebrow">YOUR JOURNEY</p>
+              <h1>My <em>Progress.</em></h1>
             </div>
-            <Trophy size={48} className="text-yellow-400" />
           </div>
 
-          <h2 className="font-bold text-lg mb-4 text-gray-300">Riwayat Terakhir</h2>
-          
-          {progress.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Belum ada modul yang dibuka. Yuk mulai belajar!</p>
+          {!user ? (
+            // STATE BELUM LOGIN
+            <div className="text-center p-10 bg-white/80 backdrop-blur-md rounded-[2.5rem] border border-gray-100 shadow-sm mt-4">
+              <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trophy size={48} className="text-slate-300" />
+              </div>
+              <h2 className="text-2xl font-black text-slate-800 mb-2">Belum ada akun!</h2>
+              <p className="text-slate-500 mb-8 font-medium">Buat profil dulu yuk supaya progres belajarmu bisa tersimpan otomatis.</p>
+              <button onClick={() => router.push('/profile')} className="bg-blue-500 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-blue-200">
+                Buat Profil Sekarang
+              </button>
+            </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {progress.map((item) => (
-                <div key={item.id} className="bg-white/10 p-4 rounded-2xl flex items-center gap-4">
-                  <div className="bg-blue-500/20 p-3 rounded-full text-blue-400">
-                    <BookOpen size={24} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold">{item.moduleName}</h3>
-                    <div className="flex items-center gap-1 text-sm text-gray-400 mt-1">
-                      <Clock size={14} /> <span>{item.timestamp}</span>
-                    </div>
-                  </div>
+            // STATE SUDAH LOGIN
+            <div className="mt-4">
+              {/* KARTU STATISTIK */}
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-500 p-8 rounded-[2.5rem] text-white shadow-xl shadow-purple-200/50 mb-10 flex justify-between items-center relative overflow-hidden">
+                <div className="z-10">
+                  <p className="text-white/80 font-semibold tracking-wide mb-1 text-sm uppercase">Total Aktivitas</p>
+                  <h2 className="text-6xl font-black">{progress.length}</h2>
                 </div>
-              ))}
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md z-10">
+                  <Trophy size={40} className="text-yellow-300 drop-shadow-md" />
+                </div>
+                {/* Hiasan background card */}
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                <div className="absolute -top-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+              </div>
+
+              <div className="section-title"><h2>RIWAYAT TERAKHIR</h2></div>
+
+              {progress.length === 0 ? (
+                <div className="text-center bg-white/50 p-8 rounded-[2rem] border border-slate-100 mt-4">
+                  <p className="text-slate-400 font-medium">Belum ada modul yang kamu buka. Yuk mulai petualanganmu!</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4 mt-4 pb-24">
+                  {progress.map((item) => (
+                    <div key={item.id} className="flex items-center p-5 bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border border-slate-100 hover:shadow-md transition">
+                      <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center mr-5 shrink-0">
+                        <BookOpen size={28} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-slate-800 text-lg">{item.moduleName}</h3>
+                        <p className="text-sm font-semibold text-slate-400 flex items-center gap-1.5 mt-1">
+                          <Sparkles size={14} className="text-yellow-400" /> Hari ini, pukul {item.timestamp}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
+
+      {/* BOTTOM NAV */}
+      <nav className="bottom-nav" aria-label="Mobile navigation">
+        {navItems.map(({ label, icon: Icon, path }) => (
+          <button key={label} className={activeNav === label ? 'active' : ''} onClick={() => { setActiveNav(label); if (path && path !== '#') router.push(path); }}>
+            <Icon /><span>{label}</span>
+          </button>
+        ))}
+      </nav>
     </main>
   )
 }
