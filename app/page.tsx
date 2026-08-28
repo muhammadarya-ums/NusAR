@@ -25,6 +25,7 @@ import {
   UsersRound,
   X,
 } from 'lucide-react'
+import { useUser } from './context/UserContext'
 
 const modules = [
   { label: 'My Modules', icon: BookOpen, tone: 'lavender', path: '/toc' },
@@ -47,13 +48,13 @@ const quickAccess = [
   { label: 'Settings', icon: Settings, tone: 'blue' },
 ]
 
-// 1. Tambahkan properti 'path' ke navItems
+// Path navigasi sudah diupdate mengarah ke /progress dan /profile
 const navItems = [
   { label: 'Home', icon: Compass, path: '/' },
   { label: 'Modules', icon: BookOpen, path: '/toc' },
-  { label: 'Scan', icon: ScanLine, path: '/scan' }, // Path ke halaman scanner
-  { label: 'Progress', icon: BarChart3, path: '#' },
-  { label: 'Profile', icon: CircleUserRound, path: '#' },
+  { label: 'Scan', icon: ScanLine, path: '/scan' },
+  { label: 'Progress', icon: BarChart3, path: '/progress' },
+  { label: 'Profile', icon: CircleUserRound, path: '/profile' },
 ]
 
 function Brand() {
@@ -84,13 +85,15 @@ export default function Page() {
   const [scanStarted, setScanStarted] = useState(false)
   const [materialIndex, setMaterialIndex] = useState(0)
 
+  // Mengambil data user dan fungsi addProgress dari Context
+  const { user, addProgress } = useUser()
+
   return (
     <main className="nusar-shell">
       <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-top"><Brand /><button className="close-menu" onClick={() => setMenuOpen(false)} aria-label="Close menu"><X /></button></div>
         <p className="sidebar-label">LEARN WITH NUSAR</p>
         
-        {/* 2. Update navigasi Sidebar Desktop */}
         <nav className="side-nav" aria-label="Main navigation">
           {navItems.map(({ label, icon: Icon, path }) => (
             <button 
@@ -114,8 +117,19 @@ export default function Page() {
         <header className="topbar">
           <button className="menu-button" onClick={() => setMenuOpen(true)} aria-label="Open menu"><Menu /></button>
           <div className="mobile-brand"><Brand /></div>
-          <div className="topbar-copy"><p>Welcome back, explorer!</p><span>Ready to discover something new?</span></div>
-          <button className="profile-button" aria-label="Open profile"><span className="avatar-face">✦</span><span className="profile-name">Alya</span><ChevronRight /></button>
+          
+          {/* Teks sapaan menjadi dinamis */}
+          <div className="topbar-copy">
+            <p>Welcome back, {user ? user : 'explorer'}!</p>
+            <span>Ready to discover something new?</span>
+          </div>
+          
+          {/* Tombol profil dinamis dan mengarah ke /profile */}
+          <button className="profile-button" onClick={() => router.push('/profile')} aria-label="Open profile">
+            <span className="avatar-face">✦</span>
+            <span className="profile-name">{user ? user : 'Masuk'}</span>
+            <ChevronRight />
+          </button>
         </header>
 
         <div className="content">
@@ -145,7 +159,13 @@ export default function Page() {
               <button 
                 className={`module-card ${tone}`} 
                 key={label}
-                onClick={() => router.push(path)} 
+                onClick={() => {
+                  // Merekam progres saat modul diklik
+                  if (user) {
+                    addProgress(label)
+                  }
+                  router.push(path)
+                }} 
               >
                 <span className="module-icon"><Icon /></span>
                 <strong>{label}</strong>
@@ -154,14 +174,13 @@ export default function Page() {
           </div>
 
           <SectionTitle title="LEARNING MATERIALS" action="See all" />
-          <div className="materials-row"><button className="carousel-arrow" onClick={() => setMaterialIndex(Math.max(materialIndex - 1, 0))} aria-label="Previous materials"><ChevronLeft /></button><div className="materials-window"><div className="materials-track" style={{ transform: `translateX(-${materialIndex * 33.333}%)` }}>{materials.map(({ category, title, tone, art }) => <button className={`material-card ${tone}`} key={title}><span className="tag">{category}</span><h3>{title.split('\n').map((line) => <span key={line}>{line}</span>)}</h3><span className={`material-art ${art}`}></span><span className="ar-badge"><ScanLine /></span></button>)}</div></div><button className="carousel-arrow" onClick={() => setMaterialIndex(Math.min(materialIndex + 1, materials.length - 1))} aria-label="Next materials"><ChevronRight /></button></div>
+          <div className="materials-row"><button className="carousel-arrow" onClick={() => setMaterialIndex(Math.max(materialIndex - 1, 0))} aria-label="Previous materials"><ChevronLeft /></button><div className="materials-window"><div className="materials-track" style={{ transform: `translateX(-${materialIndex * 33.333}%)` }}>{materials.map(({ category, title, tone, art }) => <button className={`material-card ${tone}`} key={title} onClick={() => { if (user) addProgress(title.replace('\n', ' ')); }}><span className="tag">{category}</span><h3>{title.split('\n').map((line) => <span key={line}>{line}</span>)}</h3><span className={`material-art ${art}`}></span><span className="ar-badge"><ScanLine /></span></button>)}</div></div><button className="carousel-arrow" onClick={() => setMaterialIndex(Math.min(materialIndex + 1, materials.length - 1))} aria-label="Next materials"><ChevronRight /></button></div>
 
           <SectionTitle title="QUICK ACCESS" />
           <div className="quick-grid">{quickAccess.map(({ label, icon: Icon, tone }) => <button className="quick-item" key={label}><span className={`quick-icon ${tone}`}><Icon /></span><strong>{label}</strong></button>)}</div>
         </div>
       </div>
 
-      {/* 3. Update navigasi Bottom Bar Mobile */}
       <nav className="bottom-nav" aria-label="Mobile navigation">
         {navItems.map(({ label, icon: Icon, path }) => (
           <button 

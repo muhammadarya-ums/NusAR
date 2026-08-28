@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { UserProvider } from './context/UserContext' // <-- Import Provider
 
 export const metadata: Metadata = {
   title: 'NusAR | Explore, Learn, Imagine',
@@ -46,7 +47,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        {/* Bungkus aplikasi dengan UserProvider agar state bisa diakses global */}
+        <UserProvider>
+          {children}
+        </UserProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
