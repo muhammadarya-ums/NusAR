@@ -13,7 +13,15 @@ export default function ScanPage() {
   const [errorMsg, setErrorMsg] = useState<string>('')
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [scannedResult, setScannedResult] = useState<string | null>(null)
+  
   const [isScanning, setIsScanning] = useState<boolean>(true)
+  // Ref ini berfungsi sebagai saklar "pause/resume" tanpa perlu me-restart useEffect
+  const isScanningRef = useRef<boolean>(true)
+
+  // Sinkronkan state isScanning ke isScanningRef
+  useEffect(() => {
+    isScanningRef.current = isScanning
+  }, [isScanning])
 
   // 1. Hook menyalakan kamera
   useEffect(() => {
@@ -61,85 +69,74 @@ export default function ScanPage() {
     if (hasPermission && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(err => {
-        console.error("Gagal auto-play di iOS:", err);
+        console.error("Gagal auto-play:", err);
       });
     }
   }, [hasPermission, stream]);
 
-  // 3. Hook proses decoding Barcode / QR Code
+  // 3. Hook proses decoding Barcode / QR Code (HANYA JALAN SEKALI SAAT STREAM READY)
   useEffect(() => {
-    if (!hasPermission || !stream || !videoRef.current || !isScanning) return;
+    if (!hasPermission || !stream || !videoRef.current) return;
 
     const codeReader = new BrowserMultiFormatReader();
     let active = true;
 
     const startScanning = async () => {
-      // Pastikan elemen video menyala kembali ketika scanning diaktifkan
-      if (videoRef.current) {
-        if (!videoRef.current.srcObject) {
-          videoRef.current.srcObject = stream;
-        }
-        try {
-          await videoRef.current.play();
-        } catch (e) {
-          // Mengabaikan error play interrupter
-        }
-      }
+      while (active && videoRef.current) {
+        // Hanya lakukan proses scan jika saklar (ref) dalam keadaan true
+        if (isScanningRef.current) {
+          try {
+            const result = await codeReader.decodeFromVideoElement(videoRef.current);
 
-      while (active && isScanning && videoRef.current) {
-        try {
-          const result = await codeReader.decodeFromVideoElement(videoRef.current);
+            // Jika berhasil menemukan hasil dan posisi masih aktif scan
+            if (result && active && isScanningRef.current) {
+              const text = result.getText();
+              
+              // Matikan saklar scan segera agar tidak berulang
+              isScanningRef.current = false;
+              setIsScanning(false);
+              setScannedResult(text);
 
-          if (result && active) {
-            const text = result.getText();
-            setScannedResult(text);
-            setIsScanning(false);
+              if (navigator.vibrate) navigator.vibrate(200);
 
-            if (navigator.vibrate) navigator.vibrate(200);
-
-            // Logika Auto-Redirect jika hasil scan berupa Link/URL
-            if (text.startsWith('http://') || text.startsWith('https://')) {
-              window.location.href = text;
-            } else if (text.startsWith('/')) {
-              router.push(text);
+              // Auto-Redirect
+              if (text.startsWith('http://') || text.startsWith('https://')) {
+                window.location.href = text;
+              } else if (text.startsWith('/')) {
+                router.push(text);
+              }
             }
-            break;
-          }
-        } catch (err) {
-          if (!(err instanceof NotFoundException)) {
-            console.error("Scan error:", err);
+          } catch (err) {
+            if (!(err instanceof NotFoundException)) {
+              console.error("Scan error:", err);
+            }
           }
         }
 
+        // Timer interval selalu berjalan (termasuk saat dipause)
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
     };
 
     startScanning();
 
+    // Pembersihan hanya terjadi ketika komponen di-unmount (keluar halaman)
     return () => {
-      // Cukup matikan loop scanning tanpa memanggil codeReader.reset() agar video tidak terputus
       active = false;
+      codeReader.reset();
     };
-  }, [hasPermission, stream, isScanning, router]);
+  }, [hasPermission, stream, router]); 
+  // Perhatikan: isScanning sengaja dihapus dari dependency array di atas agar useEffect tidak restart.
 
-  // Fungsi untuk reset state agar bisa scan ulang tanpa membuat kamera blank
+  // Fungsi untuk reset state agar bisa scan ulang
   const handleResetScan = () => {
     setScannedResult(null);
-    setIsScanning(true);
-
-    if (videoRef.current) {
-      if (!videoRef.current.srcObject && stream) {
-        videoRef.current.srcObject = stream;
-      }
-      videoRef.current.play().catch(console.error);
-    }
+    setIsScanning(true); // Ini akan meng-update isScanningRef ke true secara otomatis
   };
 
   return (
     <main className="relative w-full h-screen bg-black overflow-hidden flex flex-col items-center justify-center">
 
-      {/* HEADER NAVIGASI */}
       <header className="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-50">
         <button
           onClick={() => router.push('/')}
@@ -154,7 +151,6 @@ export default function ScanPage() {
         <div className="w-12" />
       </header>
 
-      {/* RENDER VIDEO KAMERA */}
       {hasPermission === true && (
         <>
           <video
@@ -165,10 +161,8 @@ export default function ScanPage() {
             className="absolute inset-0 w-full h-full object-cover"
           />
 
-          {/* UI VIEWFINDER */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
             <div className="absolute inset-0 bg-black/40" />
-
             <div className={`relative w-70 h-70 md:w-100 md:h-100 bg-transparent shadow-[0_0_0_9999px_rgba(0,0,0,0.4)] rounded-2xl overflow-hidden transition-colors ${scannedResult ? 'border-4 border-green-500' : ''}`}>
               <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-blue-400 rounded-tl-2xl" />
               <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-blue-400 rounded-tr-2xl" />
@@ -180,7 +174,6 @@ export default function ScanPage() {
             </div>
           </div>
 
-          {/* OVERLAY HASIL SCAN & OPSI ACTION */}
           <div className="absolute bottom-12 z-20 text-center flex flex-col items-center gap-3 px-6 w-full max-w-md">
             {scannedResult ? (
               <div className="bg-black/80 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-white w-full flex flex-col items-center gap-3 shadow-2xl">
@@ -216,7 +209,6 @@ export default function ScanPage() {
         </>
       )}
 
-      {/* TAMPILAN ERROR PERMISSION */}
       {hasPermission === false && (
         <div className="flex flex-col items-center justify-center p-8 text-center z-20">
           <div className="bg-red-500/20 p-6 rounded-full mb-6">
@@ -237,7 +229,6 @@ export default function ScanPage() {
         </div>
       )}
 
-      {/* CSS ANIMASI */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes scan {
           0%, 100% { transform: translateY(0); opacity: 0; }
