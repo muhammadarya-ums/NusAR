@@ -74,6 +74,18 @@ export default function ScanPage() {
     let active = true;
 
     const startScanning = async () => {
+      // Pastikan elemen video menyala kembali ketika scanning diaktifkan
+      if (videoRef.current) {
+        if (!videoRef.current.srcObject) {
+          videoRef.current.srcObject = stream;
+        }
+        try {
+          await videoRef.current.play();
+        } catch (e) {
+          // Mengabaikan error play interrupter
+        }
+      }
+
       while (active && isScanning && videoRef.current) {
         try {
           const result = await codeReader.decodeFromVideoElement(videoRef.current);
@@ -106,15 +118,22 @@ export default function ScanPage() {
     startScanning();
 
     return () => {
+      // Cukup matikan loop scanning tanpa memanggil codeReader.reset() agar video tidak terputus
       active = false;
-      codeReader.reset();
     };
   }, [hasPermission, stream, isScanning, router]);
 
-  // Fungsi untuk reset state agar bisa scan ulang
+  // Fungsi untuk reset state agar bisa scan ulang tanpa membuat kamera blank
   const handleResetScan = () => {
     setScannedResult(null);
     setIsScanning(true);
+
+    if (videoRef.current) {
+      if (!videoRef.current.srcObject && stream) {
+        videoRef.current.srcObject = stream;
+      }
+      videoRef.current.play().catch(console.error);
+    }
   };
 
   return (
