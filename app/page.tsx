@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   ArrowRight,
   BarChart3,
@@ -136,20 +137,30 @@ export default function Page() {
           <div className="intro"><div><p className="eyebrow">EXPLORE · LEARN · IMAGINE</p><h1>Make learning <em>magical.</em></h1><p className="intro-sub">Bring every lesson to life with augmented reality.</p></div><div className="ethno-pill">Ethno-<b>STEAM</b></div></div>
 
           <button 
-            className={`scan-hero ${scanStarted ? 'scan-active' : ''}`} 
-            onClick={() => router.push('/scan')} 
-            aria-label="Start AR and VR scanning"
-          >
-            <div className="scan-copy">
-              <div className="scan-icon"><QrCode /></div>
-              <div>
-                <h2>SCAN MODUL</h2>
-                <p>Ketuk untuk membuka kamera AR</p>
-              </div>
-            </div>
-            <ScanArtwork />
-            <ArrowRight className="hero-arrow" />
-          </button>
+  className={`scan-hero relative overflow-hidden ${scanStarted ? 'scan-active' : ''}`} 
+  onClick={() => router.push('/scan')} 
+  aria-label="Start AR and VR scanning"
+>
+  {/* Gambar Background */}
+  <Image 
+    src="/main-hero.png" 
+    alt="Background Scan AR Tugu Pahlawan" 
+    fill 
+    style={{ objectFit: 'cover', zIndex: 0 }} 
+    priority
+  />
+
+  {/* Bungkus konten dengan relative dan z-index agar teks berada di atas gambar */}
+  <div className="scan-copy relative z-10">
+    <div className="scan-icon"><QrCode /></div>
+    <div>
+      <h2>SCAN MODUL</h2>
+      <p>Ketuk untuk membuka kamera AR</p>
+    </div>
+  </div>
+  
+  <ArrowRight className="hero-arrow relative z-10" />
+</button>
           <div className="tip"><span className="tip-icon"><Lightbulb /></span><p><strong>Point your camera</strong> at the image or object to explore in AR/VR!</p><span className="bot">●</span></div>
 
           <SectionTitle title="E-MODULE" action="View all" />
