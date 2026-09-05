@@ -2,46 +2,36 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Volume2, ArrowLeft, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react'
+import { Volume2, ArrowLeft, ArrowRight, CheckCircle2, RotateCcw, Paintbrush } from 'lucide-react'
 
-// ==========================================
 // KOMPONEN CUSTOM: DAUN & MOTIF SEMANGGI
-// ==========================================
 const Leaf = ({ active, rotate }: { active: boolean, rotate: string }) => (
-  <div className={`w-12 h-12 md:w-16 md:h-16 rounded-t-full rounded-bl-full transition-all duration-300 ${active ? 'bg-green-600 scale-100 shadow-md' : 'bg-green-200 scale-95 opacity-60'} ${rotate}`} />
+  <div 
+    className={`w-12 h-12 md:w-16 md:h-16 rounded-t-full rounded-bl-full transition-all duration-500 origin-bottom-right 
+    ${active 
+      ? 'bg-[#3b591b] scale-100 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.2),2px_2px_4px_rgba(0,0,0,0.3)]' 
+      : 'bg-[#d2b48c]/20 scale-90 opacity-60 border-2 border-dashed border-[#8b6038]/30'} 
+    ${rotate}`} 
+    aria-hidden="true"
+  />
 )
 
 const MotifSemanggi = ({ count, spin = false }: { count: number, spin?: boolean }) => (
-  <div className={`relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center ${spin ? 'animate-[spin_20s_linear_infinite]' : ''}`}>
-    {/* Kiri Atas */}
-    <div className="absolute top-0 left-0 origin-bottom-right">
-      <Leaf active={count >= 1} rotate="rotate-0" />
-    </div>
-    {/* Kanan Atas */}
-    <div className="absolute top-0 right-0 origin-bottom-left">
-      <Leaf active={count >= 2} rotate="rotate-90" />
-    </div>
-    {/* Kanan Bawah */}
-    <div className="absolute bottom-0 right-0 origin-top-left">
-      <Leaf active={count >= 3} rotate="rotate-180" />
-    </div>
-    {/* Kiri Bawah */}
-    <div className="absolute bottom-0 left-0 origin-top-right">
-      <Leaf active={count >= 4} rotate="-rotate-90" />
-    </div>
+  <div className={`relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-1000 ${spin ? 'animate-[spin_10s_linear_infinite]' : ''}`} aria-hidden="true">
+    <div className="absolute top-0 left-0"><Leaf active={count >= 1} rotate="rotate-0" /></div>
+    <div className="absolute top-0 right-0"><Leaf active={count >= 2} rotate="rotate-90" /></div>
+    <div className="absolute bottom-0 right-0"><Leaf active={count >= 3} rotate="rotate-180" /></div>
+    <div className="absolute bottom-0 left-0"><Leaf active={count >= 4} rotate="-rotate-90" /></div>
   </div>
 )
 
 export default function Level3Page() {
   const router = useRouter()
-  // step 1: Mengenal isi 4, step 2: Menghitung 2 kelompok, step 3: Menyusun kain (max 3 motif)
   const [step, setStep] = useState(1)
-  
-  const [leafCount, setLeafCount] = useState(0) // Untuk Step 1 (0-4)
-  const [groupCount, setGroupCount] = useState(0) // Untuk Step 2 (0-2)
-  const [motifCount, setMotifCount] = useState(0) // Untuk Step 3 (0-3)
+  const [leafCount, setLeafCount] = useState(0) 
+  const [groupCount, setGroupCount] = useState(0) 
+  const [motifCount, setMotifCount] = useState(0) 
 
-  // Fungsi putar suara otomatis
   const speak = (text: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel()
@@ -52,14 +42,12 @@ export default function Level3Page() {
     }
   }
 
-  // Narasi Pembuka Tiap Step
   useEffect(() => {
-    if (step === 1) speak("Satu motif Batik Semanggi memiliki empat helai daun. Sentuh tombol untuk menghitung daunnya.")
+    if (step === 1) speak("Satu motif Batik Semanggi memiliki empat helai daun. Sentuh tombol untuk mengecap daunnya.")
     if (step === 2) speak("Mari berhitung berkelompok. Satu motif isinya empat, kalau dua motif jadi berapa?")
     if (step === 3) speak("Mari menyusun kain batik. Tambahkan tiga motif agar jumlah daunnya jadi dua belas.")
   }, [step])
 
-  // --- LOGIKA AKTIVITAS 1 ---
   const handleCountLeaf = () => {
     if (leafCount < 4) {
       const newCount = leafCount + 1
@@ -71,7 +59,6 @@ export default function Level3Page() {
     }
   }
 
-  // --- LOGIKA AKTIVITAS 2 ---
   const handleCountGroup = () => {
     if (groupCount === 0) {
       setGroupCount(1)
@@ -82,7 +69,6 @@ export default function Level3Page() {
     }
   }
 
-  // --- LOGIKA AKTIVITAS 3 ---
   const handleAddMotif = () => {
     if (motifCount < 3) {
       const newMotif = motifCount + 1
@@ -97,159 +83,158 @@ export default function Level3Page() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4faed] text-[#18333a] font-sans pb-24">
-      {/* HEADER Navigasi */}
-      <header className="bg-[#5ea138] text-white p-4 flex items-center gap-4 shadow-md sticky top-0 z-50">
+    <main className="min-h-screen bg-[#fdfbf7] text-[#452b14] font-sans pb-24 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')]">
+      {/* HEADER Navigasi - Aksesibilitas Ditingkatkan */}
+      <header className="bg-[#6b4c2a] text-[#fdfbf7] p-4 flex items-center gap-4 shadow-md sticky top-0 z-50">
         <button 
           onClick={() => router.push('/stage1')}
-          className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-white/10 border-2 border-transparent hover:bg-white/20 hover:border-white rounded-2xl transition-all focus:outline-none focus:ring-4 focus:ring-white/50 active:scale-95 shadow-sm"
+          aria-label="Kembali ke Menu Utama Stage 1"
+          title="Kembali ke Menu Utama"
         >
-          <ArrowLeft size={28} />
+          <ArrowLeft size={28} aria-hidden="true" />
+          <span className="font-bold text-base md:text-lg">Kembali</span>
         </button>
         <div className="flex-1">
-          <p className="text-sm font-bold opacity-90">Level 3: Batik Semanggi</p>
-          <h1 className="text-xl font-black">Berhitung Berkelompok</h1>
+          <p className="text-sm font-bold opacity-90 text-amber-200">Level 3: Batik Semanggi</p>
+          <h1 className="text-xl font-black tracking-wide">Berhitung Berkelompok</h1>
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto p-4 md:p-8 mt-4">
-        
-        {/* =========================================
-            AKTIVITAS 1: MENGENAL KELOMPOK ISI 4
-        ========================================= */}
+        {/* AKTIVITAS 1 */}
         {step === 1 && (
           <section className="flex flex-col items-center animate-in fade-in duration-500">
-            <div className="bg-white border-4 border-[#5ea138] rounded-3xl p-6 w-full text-center shadow-lg mb-8 min-h-[450px]">
+            <div className="bg-white border-4 border-[#8b6038] rounded-3xl p-6 w-full text-center shadow-2xl mb-8 min-h-[450px]">
               <button 
-                onClick={() => speak("Sentuh tombol hijau untuk menghitung daun satu per satu.")}
-                className="mx-auto mb-4 bg-green-100 text-green-700 p-3 rounded-full"
+                onClick={() => speak("Sentuh tombol Cap Daun untuk menghitung daun satu per satu.")}
+                className="mx-auto mb-4 bg-amber-100 text-amber-800 p-3 rounded-full hover:scale-105 transition focus:outline-none focus:ring-4 focus:ring-amber-400"
+                aria-label="Putar Suara Instruksi"
               >
-                <Volume2 size={32} />
+                <Volume2 size={32} aria-hidden="true" />
               </button>
-              <h2 className="text-2xl md:text-3xl font-black text-[#2f5c15] mb-2">1 Motif = 4 Daun</h2>
-              <p className="text-lg font-bold text-gray-600 mb-8">Hitung daun pada motif Semanggi ini</p>
+              <h2 className="text-2xl md:text-3xl font-black text-[#6b4c2a] mb-2">1 Motif = 4 Daun</h2>
+              <p className="text-lg font-bold text-amber-700/80 mb-8">Cap daun pada pola Semanggi ini</p>
               
-              <div className="flex justify-center mb-12">
+              <div className="relative w-full max-w-sm mx-auto h-64 bg-[#f4ebd8] rounded-2xl border-dashed border-4 border-[#d2b48c] flex items-center justify-center shadow-[inset_0_0_20px_rgba(0,0,0,0.05)] mb-12">
                 <MotifSemanggi count={leafCount} spin={leafCount === 4} />
               </div>
 
               <div className="mt-8 flex flex-col items-center">
                 {leafCount < 4 ? (
-                  <button onClick={handleCountLeaf} className="bg-[#5ea138] text-white text-2xl font-black py-4 px-12 rounded-full shadow-lg active:scale-95 transition">
-                    Hitung Daun ({leafCount}/4)
+                  <button 
+                    onClick={handleCountLeaf} 
+                    className="flex items-center gap-3 bg-[#4d7c0f] text-white text-2xl font-black py-4 px-12 rounded-full shadow-[0_6px_0_#274007] active:shadow-[0_0px_0_#274007] active:translate-y-[6px] transition-all focus:outline-none focus:ring-4 focus:ring-[#4d7c0f]/50"
+                  >
+                    <Paintbrush size={28} aria-hidden="true" /> Cap Daun ({leafCount}/4)
                   </button>
                 ) : (
-                  <div className="flex items-center gap-3 text-green-600 animate-in zoom-in font-black text-2xl bg-green-50 px-8 py-4 rounded-full border-2 border-green-200">
-                    <CheckCircle2 size={36} /> Hebat! Ada 4 daun.
+                  <div className="flex items-center gap-3 text-green-700 animate-in zoom-in font-black text-2xl bg-green-100 px-8 py-4 rounded-2xl border-4 border-green-400 shadow-lg">
+                    <CheckCircle2 size={36} aria-hidden="true" /> Hebat! Ada 4 daun.
                   </div>
                 )}
               </div>
             </div>
 
             {leafCount === 4 && (
-              <button onClick={() => setStep(2)} className="flex items-center gap-2 bg-[#f2bd3d] text-[#123d75] text-xl font-black py-3 px-8 rounded-full shadow-md animate-bounce">
-                Lanjut Hitung 2 Motif <ArrowRight />
+              <button onClick={() => setStep(2)} className="flex items-center gap-2 bg-[#f2bd3d] text-[#123d75] text-xl font-black py-3 px-8 rounded-full shadow-md animate-bounce hover:scale-105 transition focus:outline-none focus:ring-4 focus:ring-[#f2bd3d]/50">
+                Lanjut Hitung 2 Motif <ArrowRight aria-hidden="true" />
               </button>
             )}
           </section>
         )}
 
-        {/* =========================================
-            AKTIVITAS 2: MENGHITUNG 2 MOTIF (8 DAUN)
-        ========================================= */}
+        {/* AKTIVITAS 2 */}
         {step === 2 && (
           <section className="flex flex-col items-center animate-in slide-in-from-right duration-500">
-            <div className="bg-white border-4 border-[#e98608] rounded-3xl p-6 w-full text-center shadow-lg mb-8 min-h-[450px]">
+            <div className="bg-white border-4 border-[#d97706] rounded-3xl p-6 w-full text-center shadow-2xl mb-8 min-h-[450px]">
               <button 
                 onClick={() => speak("Mari menghitung daun dari dua motif batik.")}
-                className="mx-auto mb-4 bg-orange-100 text-orange-700 p-3 rounded-full"
+                className="mx-auto mb-4 bg-orange-100 text-orange-800 p-3 rounded-full hover:scale-105 transition focus:outline-none focus:ring-4 focus:ring-orange-400"
+                aria-label="Putar Suara Instruksi"
               >
-                <Volume2 size={32} />
+                <Volume2 size={32} aria-hidden="true" />
               </button>
-              <h2 className="text-2xl md:text-3xl font-black text-[#e98608] mb-2">Menghitung 2 Kelompok</h2>
-              <p className="text-lg font-bold text-gray-600 mb-8">1 Motif = 4. Kalau 2 Motif?</p>
+              <h2 className="text-2xl md:text-3xl font-black text-[#b45309] mb-2">Menghitung 2 Kelompok</h2>
+              <p className="text-lg font-bold text-orange-700/80 mb-8">1 Motif = 4. Kalau 2 Motif?</p>
               
-              <div className="flex justify-center gap-6 md:gap-16 mb-12 bg-orange-50 p-8 rounded-3xl border-2 border-orange-100">
-                {/* Motif 1 */}
+              <div className="flex justify-center gap-6 md:gap-16 mb-12 bg-[#f4ebd8] p-8 rounded-3xl border-dashed border-4 border-[#d2b48c] shadow-[inset_0_0_20px_rgba(0,0,0,0.05)]">
                 <div className="flex flex-col items-center gap-4">
                   <MotifSemanggi count={groupCount >= 1 ? 4 : 0} />
-                  <span className="text-3xl font-black text-green-700">{groupCount >= 1 ? '4' : '?'}</span>
+                  <span className={`text-4xl font-black transition-colors duration-500 ${groupCount >= 1 ? 'text-[#3b591b]' : 'text-gray-400'}`}>
+                    {groupCount >= 1 ? '4' : '?'}
+                  </span>
                 </div>
                 
-                {/* Motif 2 */}
                 <div className="flex flex-col items-center gap-4">
                   <MotifSemanggi count={groupCount >= 2 ? 4 : 0} />
-                  <span className="text-3xl font-black text-green-700">{groupCount >= 2 ? '8' : '?'}</span>
+                  <span className={`text-4xl font-black transition-colors duration-500 ${groupCount >= 2 ? 'text-[#3b591b]' : 'text-gray-400'}`}>
+                    {groupCount >= 2 ? '8' : '?'}
+                  </span>
                 </div>
               </div>
 
               <div className="mt-8 flex justify-center">
                 {groupCount < 2 ? (
-                  <button onClick={handleCountGroup} className="bg-[#e98608] text-white text-2xl font-black py-4 px-12 rounded-full shadow-lg active:scale-95 transition">
-                    Hitung Motif ke-{groupCount + 1}
+                  <button 
+                    onClick={handleCountGroup} 
+                    className="flex items-center gap-3 bg-[#d97706] text-white text-2xl font-black py-4 px-12 rounded-full shadow-[0_6px_0_#9a3412] active:shadow-[0_0px_0_#9a3412] active:translate-y-[6px] transition-all focus:outline-none focus:ring-4 focus:ring-[#d97706]/50"
+                  >
+                    <Paintbrush size={28} aria-hidden="true" /> Cap Motif ke-{groupCount + 1}
                   </button>
                 ) : (
-                  <div className="flex items-center gap-3 text-orange-600 animate-in zoom-in font-black text-2xl bg-orange-50 px-8 py-4 rounded-full border-2 border-orange-200">
-                    <CheckCircle2 size={36} /> Benar! Dua motif jadi 8 daun.
+                  <div className="flex items-center gap-3 text-orange-700 animate-in zoom-in font-black text-2xl bg-orange-100 px-8 py-4 rounded-2xl border-4 border-orange-400 shadow-lg">
+                    <CheckCircle2 size={36} aria-hidden="true" /> Benar! Dua motif jadi 8 daun.
                   </div>
                 )}
               </div>
             </div>
 
             {groupCount === 2 && (
-              <button onClick={() => setStep(3)} className="flex items-center gap-2 bg-[#f2bd3d] text-[#123d75] text-xl font-black py-3 px-8 rounded-full shadow-md animate-bounce">
-                Lanjut Menyusun Kain <ArrowRight />
+              <button onClick={() => setStep(3)} className="flex items-center gap-2 bg-[#f2bd3d] text-[#123d75] text-xl font-black py-3 px-8 rounded-full shadow-md animate-bounce hover:scale-105 transition focus:outline-none focus:ring-4 focus:ring-[#f2bd3d]/50">
+                Lanjut Menyusun Kain <ArrowRight aria-hidden="true" />
               </button>
             )}
           </section>
         )}
 
-        {/* =========================================
-            AKTIVITAS 3: MENYUSUN KAIN (TARGET 12 DAUN)
-        ========================================= */}
+        {/* AKTIVITAS 3 */}
         {step === 3 && (
           <section className="flex flex-col items-center animate-in slide-in-from-right duration-500">
-            <div className="bg-white border-4 border-[#123d75] rounded-3xl p-6 w-full text-center shadow-lg mb-8 min-h-[450px]">
+            <div className="bg-white border-4 border-[#6b4c2a] rounded-3xl p-6 w-full text-center shadow-2xl mb-8 min-h-[450px]">
               <button 
                 onClick={() => speak("Tambahkan motif satu per satu sampai jumlah daunnya menjadi dua belas.")}
-                className="mx-auto mb-4 bg-blue-100 text-blue-700 p-3 rounded-full"
+                className="mx-auto mb-4 bg-amber-100 text-amber-800 p-3 rounded-full hover:scale-105 transition focus:outline-none focus:ring-4 focus:ring-amber-400"
+                aria-label="Putar Suara Instruksi"
               >
-                <Volume2 size={32} />
+                <Volume2 size={32} aria-hidden="true" />
               </button>
-              <h2 className="text-2xl md:text-3xl font-black text-[#123d75] mb-2">Membuat Kain Batik</h2>
-              <p className="text-lg font-bold text-gray-600 mb-8">Susun motif agar jumlah totalnya jadi <strong className="text-2xl text-blue-600">12 daun</strong></p>
+              <h2 className="text-2xl md:text-3xl font-black text-[#6b4c2a] mb-2">Membuat Kain Batik Panjang</h2>
+              <p className="text-lg font-bold text-amber-700/80 mb-8">Susun motif agar jumlah totalnya jadi <strong className="text-2xl text-[#3b591b] bg-green-100 px-3 py-1 rounded-md">12 daun</strong></p>
               
-              {/* AREA KAIN */}
-              <div className={`relative min-h-[200px] flex justify-center items-center gap-4 md:gap-8 p-6 rounded-3xl border-4 transition-all duration-700 ${motifCount === 3 ? 'bg-[#ffedc2] border-[#f2bd3d]' : 'bg-gray-50 border-dashed border-gray-300'}`}>
-                
-                {/* Tempat Motif 1 */}
-                <div className={`transition-all duration-500 ${motifCount >= 1 ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
-                   <MotifSemanggi count={4} />
-                </div>
-                {/* Tempat Motif 2 */}
-                <div className={`transition-all duration-500 ${motifCount >= 2 ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
-                   <MotifSemanggi count={4} />
-                </div>
-                {/* Tempat Motif 3 */}
-                <div className={`transition-all duration-500 ${motifCount >= 3 ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
-                   <MotifSemanggi count={4} />
-                </div>
+              <div className={`relative min-h-[220px] flex justify-center items-center gap-4 md:gap-12 p-8 rounded-3xl border-4 transition-all duration-700 shadow-[inset_0_0_20px_rgba(0,0,0,0.05)] ${motifCount === 3 ? 'bg-[#ffedc2] border-[#f2bd3d]' : 'bg-[#f4ebd8] border-dashed border-[#d2b48c]'}`}>
+                <div className={`transition-all duration-500 ${motifCount >= 1 ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}><MotifSemanggi count={4} /></div>
+                <div className={`transition-all duration-500 ${motifCount >= 2 ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}><MotifSemanggi count={4} /></div>
+                <div className={`transition-all duration-500 ${motifCount >= 3 ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}><MotifSemanggi count={4} /></div>
 
                 {motifCount === 3 && (
-                   <span className="absolute -bottom-5 bg-[#f2bd3d] text-[#123d75] px-6 py-2 rounded-full font-black text-xl border-4 border-white shadow-md animate-in zoom-in">
+                   <div className="absolute -bottom-6 bg-[#f2bd3d] text-[#123d75] px-8 py-3 rounded-full font-black text-2xl border-4 border-white shadow-xl animate-in zoom-in" aria-live="polite">
                      Kain Selesai! (12 Daun)
-                   </span>
+                   </div>
                 )}
               </div>
 
-              <div className="mt-12 flex justify-center">
+              <div className="mt-14 flex justify-center">
                 {motifCount < 3 ? (
-                  <button onClick={handleAddMotif} className="bg-[#123d75] text-white text-xl md:text-2xl font-black py-4 px-10 rounded-full shadow-lg active:scale-95 transition">
-                    + Tambah Motif (4 daun)
+                  <button 
+                    onClick={handleAddMotif} 
+                    className="flex items-center gap-3 bg-[#6b4c2a] text-[#fdfbf7] text-xl md:text-2xl font-black py-4 px-10 rounded-full shadow-[0_6px_0_#452b14] active:shadow-[0_0px_0_#452b14] active:translate-y-[6px] transition-all focus:outline-none focus:ring-4 focus:ring-[#6b4c2a]/50"
+                  >
+                    <Paintbrush size={28} aria-hidden="true" /> Tambah Motif (4 daun)
                   </button>
                 ) : (
-                  <button onClick={() => { setMotifCount(0); speak("Mari ulangi menyusun kain.") }} className="flex items-center gap-2 mx-auto bg-gray-200 text-gray-700 text-lg font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition">
-                    <RotateCcw /> Buat Ulang
+                  <button onClick={() => { setMotifCount(0); speak("Mari ulangi menyusun kain.") }} className="flex items-center gap-2 mx-auto bg-gray-200 text-gray-700 text-lg font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition focus:outline-none focus:ring-4 focus:ring-gray-400">
+                    <RotateCcw aria-hidden="true" /> Buat Ulang
                   </button>
                 )}
               </div>
@@ -257,15 +242,14 @@ export default function Level3Page() {
 
             {motifCount === 3 && (
               <button 
-                onClick={() => router.push('/toc')} // Kembali ke Daftar Isi karena Stage 1 selesai
-                className="bg-[#18a7a2] text-white text-xl font-black py-4 px-12 rounded-full shadow-lg animate-bounce"
+                onClick={() => router.push('/toc')} 
+                className="bg-[#4d7c0f] text-white text-xl font-black py-4 px-12 rounded-full shadow-[0_6px_0_#274007] active:shadow-[0_0px_0_#274007] active:translate-y-[6px] animate-bounce hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-[#4d7c0f]/50"
               >
                 Selesai Unit 1!
               </button>
             )}
           </section>
         )}
-
       </div>
     </main>
   )

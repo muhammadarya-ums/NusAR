@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image' // <-- Wajib di-import
 import { Ear, Eye, Volume2, ChevronLeft, ChevronRight, AlertTriangle, Activity, Waves, Map, Flame, ShieldAlert } from 'lucide-react'
 
 // Menyesuaikan data dengan 3 Level di Unit 3: Mitigasi Bencana
@@ -64,10 +65,27 @@ function Illustration({ type }: { type: string }) {
 
 function Mascots() {
   return (
-    <div className="mascots" aria-label="Cak dan Ning belajar bersama">
-      <div className="mascot-boy"><span className="head" /><span className="cap" /><span className="body" /></div>
-      <div className="mascot-girl"><span className="head" /><span className="hijab" /><span className="body" /></div>
-      <div className="mascot-copy"><strong>Cak &amp; Ning</strong><span>Belajar Bersama</span></div>
+    <div className="mascots flex items-center gap-3" aria-label="Cak dan Ning belajar bersama">
+      {/* Container gambar dengan efek mask ellipse transparan */}
+      <div 
+        className="relative w-32 h-24 md:w-40 md:h-28 rounded-2xl overflow-hidden"
+        style={{
+          WebkitMaskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)',
+          maskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)',
+        }}
+      >
+        <Image 
+          src="/images/cak dan ning.png" 
+          alt="Cak dan Ning Surabaya"
+          fill
+          className="object-cover object-top"
+        />
+      </div>
+      
+      <div className="mascot-copy flex flex-col justify-center text-left">
+        <strong className="text-lg md:text-xl leading-tight">Cak &amp; Ning</strong>
+        <span className="text-sm md:text-base opacity-80">Belajar Bersama</span>
+      </div>
     </div>
   )
 }
@@ -81,13 +99,13 @@ export default function Page() {
   useEffect(() => {
     const savedProgress = localStorage.getItem('nusar_stage3_progress')
     if (savedProgress) {
-      setCompleted(parseInt(savedProgress, 10))
+      setCompleted(Math.min(parseInt(savedProgress, 10), 3))
     }
   }, [])
 
   const updateProgress = (newLevel: number) => {
     setCompleted((prev) => {
-      const maxVal = Math.max(prev, newLevel)
+      const maxVal = Math.min(Math.max(prev, newLevel), 3)
       localStorage.setItem('nusar_stage3_progress', maxVal.toString())
       return maxVal
     })
@@ -175,7 +193,7 @@ export default function Page() {
           <div className="progress-area">
             <strong>Progres Belajar</strong>
             <div className="progress-track" role="progressbar" aria-valuenow={completed} aria-valuemin={0} aria-valuemax={3}>
-              <span style={{ width: `${completed / 3 * 100}%` }} />
+              <span style={{ width: `${Math.min((completed / 3) * 100, 100)}%` }} />
             </div>
             <small>{completed} dari 3 Level dipelajari</small>
           </div>

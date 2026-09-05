@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Ear, Eye, Volume2, ChevronLeft, ChevronRight, Waves, MapPin, Compass, Sun, Moon, Flag, ListOrdered } from 'lucide-react'
 
 // Menyesuaikan data dengan 3 Level di Unit 2: Ruang & Waktu
@@ -64,10 +65,27 @@ function Illustration({ type }: { type: string }) {
 
 function Mascots() {
   return (
-    <div className="mascots" aria-label="Cak dan Ning belajar bersama">
-      <div className="mascot-boy"><span className="head" /><span className="cap" /><span className="body" /></div>
-      <div className="mascot-girl"><span className="head" /><span className="hijab" /><span className="body" /></div>
-      <div className="mascot-copy"><strong>Cak &amp; Ning</strong><span>Belajar Bersama</span></div>
+    <div className="mascots flex items-center gap-3" aria-label="Cak dan Ning belajar bersama">
+      {/* Ukuran dibikin memanjang (w-32 h-24), pakai rounded-2xl, dan mask ellipse */}
+      <div 
+        className="relative w-32 h-24 md:w-40 md:h-28 rounded-2xl overflow-hidden"
+        style={{
+          WebkitMaskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)',
+          maskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)',
+        }}
+      >
+        <Image 
+          src="/images/cak dan ning.png" 
+          alt="Cak dan Ning Surabaya"
+          fill
+          className="object-cover object-top"
+        />
+      </div>
+      
+      <div className="mascot-copy flex flex-col justify-center text-left">
+        <strong className="text-lg md:text-xl leading-tight">Cak &amp; Ning</strong>
+        <span className="text-sm md:text-base opacity-80">Belajar Bersama</span>
+      </div>
     </div>
   )
 }
@@ -175,7 +193,8 @@ export default function Page() {
           <div className="progress-area">
             <strong>Progres Belajar</strong>
             <div className="progress-track" role="progressbar" aria-valuenow={completed} aria-valuemin={0} aria-valuemax={3}>
-              <span style={{ width: `${completed / 3 * 100}%` }} />
+              {/* Tanda kurung ditambahkan biar kalkulasi aman */}
+              <span style={{ width: `${(completed / 3) * 100}%` }} />
             </div>
             <small>{completed} dari 3 Level dipelajari</small>
           </div>

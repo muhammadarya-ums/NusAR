@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react' // <-- 1. Tambahkan useEffect
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Ear, Eye, Volume2, ChevronLeft, ChevronRight, Waves, ShoppingBasket, Clover } from 'lucide-react'
+import Image from 'next/image'
+import { Ear, Eye, Volume2, ChevronLeft, ChevronRight, Waves } from 'lucide-react'
 
+// 1. Array levels diperbarui dengan properti imageUrl untuk semua level
 const levels = [
   { 
     number: 1, 
     color: 'blue', 
     label: 'Bilangan', 
     desc: 'Kampung Nelayan Kenjeran', 
-    art: 'boat',
+    imageUrl: '/images/boat.png',
     path: '/stage1/level1'
   },
   { 
@@ -18,7 +20,7 @@ const levels = [
     color: 'orange', 
     label: 'Operasi Hitung', 
     desc: 'Pasar Ikan Kenjeran', 
-    art: 'market',
+    imageUrl: '/images/pasar-ikan.png', // Placeholder gambar level 2
     path: '/stage1/level2'
   },
   { 
@@ -26,45 +28,50 @@ const levels = [
     color: 'green', 
     label: 'Berhitung Berkelompok', 
     desc: 'Batik Semanggi', 
-    art: 'batik',
+    imageUrl: '/images/batik-semanggi.png', // Placeholder gambar level 3
     path: '/stage1/level3'
   },
 ]
 
-function Illustration({ type }: { type: string }) {
-  if (type === 'boat') {
-    return (
-      <div className="illustration boat h-[120px] mb-4">
-        <span className="mast" />
-        <span className="sail" />
-        <span className="hull">KENJERAN</span>
-        <span className="wave" />
-      </div>
-    )
-  }
-  
-  if (type === 'market') {
-    return (
-      <div className="illustration flex justify-center items-end gap-2 h-[120px] pb-4 mb-4">
-        <ShoppingBasket size={55} className="text-orange-500 drop-shadow-md" />
-        <ShoppingBasket size={70} className="text-blue-500 drop-shadow-md" />
-      </div>
-    )
-  }
-
+// 2. Komponen Illustration
+function Illustration({ src, alt }: { src: string, alt: string }) {
   return (
     <div className="illustration flex justify-center items-center h-[120px] mb-4">
-      <Clover size={85} className="text-green-600 drop-shadow-md" />
+      <Image 
+        src={src} 
+        alt={alt} 
+        width={220} 
+        height={180} 
+        className="object-contain drop-shadow-md hover:scale-105 transition-transform duration-300"
+      />
     </div>
   )
 }
 
+// 3. Komponen Mascots Baru dengan Gambar cak dan ning.png
 function Mascots() {
   return (
-    <div className="mascots" aria-label="Cak dan Ning belajar bersama">
-      <div className="mascot-boy"><span className="head" /><span className="cap" /><span className="body" /></div>
-      <div className="mascot-girl"><span className="head" /><span className="hijab" /><span className="body" /></div>
-      <div className="mascot-copy"><strong>Cak &amp; Ning</strong><span>Belajar Bersama</span></div>
+    <div className="mascots flex items-center gap-3" aria-label="Cak dan Ning belajar bersama">
+      {/* Ukuran dibikin memanjang (w-32 h-24), pakai rounded-2xl, dan mask ellipse */}
+      <div 
+        className="relative w-32 h-24 md:w-40 md:h-28 rounded-2xl overflow-hidden"
+        style={{
+          WebkitMaskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)',
+          maskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)',
+        }}
+      >
+        <Image 
+          src="/images/cak dan ning.png" 
+          alt="Cak dan Ning Surabaya"
+          fill
+          className="object-cover object-top"
+        />
+      </div>
+      
+      <div className="mascot-copy flex flex-col justify-center text-left">
+        <strong className="text-lg md:text-xl leading-tight">Cak &amp; Ning</strong>
+        <span className="text-sm md:text-base opacity-80">Belajar Bersama</span>
+      </div>
     </div>
   )
 }
@@ -74,7 +81,6 @@ export default function Page() {
   const [completed, setCompleted] = useState(1)
   const [active, setActive] = useState(1)
 
-  // 2. Ambil data dari localStorage saat halaman pertama kali dimuat
   useEffect(() => {
     const savedProgress = localStorage.getItem('nusar_stage1_progress')
     if (savedProgress) {
@@ -82,7 +88,6 @@ export default function Page() {
     }
   }, [])
 
-  // 3. Buat fungsi khusus untuk update state & localStorage sekaligus
   const updateProgress = (newLevel: number) => {
     setCompleted((prev) => {
       const maxVal = Math.max(prev, newLevel)
@@ -99,12 +104,12 @@ export default function Page() {
       utterance.rate = 0.9; 
       window.speechSynthesis.speak(utterance);
     }
-    updateProgress(level.number) // Simpan progres
+    updateProgress(level.number)
   }
 
   function next() { 
     setActive((value) => Math.min(value + 1, 3)); 
-    updateProgress(active + 1) // Simpan progres
+    updateProgress(active + 1)
   }
   
   function previous() { 
@@ -133,7 +138,7 @@ export default function Page() {
                 className={`number-card ${level.color} relative ${active === level.number ? 'selected' : ''} cursor-pointer hover:scale-105 transition-transform`} 
                 onClick={() => {
                   setActive(level.number);
-                  updateProgress(level.number); // 4. Simpan progres saat kartu diklik
+                  updateProgress(level.number);
                   
                   if (level.path) {
                     router.push(level.path);
@@ -151,7 +156,7 @@ export default function Page() {
                   </p>
                 </div>
 
-                <Illustration type={level.art} />
+                <Illustration src={level.imageUrl} alt={`Ilustrasi ${level.label}`} />
                 
                 <button 
                   className="audio-button mt-auto" 
@@ -170,13 +175,15 @@ export default function Page() {
 
         <footer className="lesson-footer">
           <Mascots />
+          
           <div className="progress-area">
             <strong>Progres Belajar</strong>
             <div className="progress-track" role="progressbar" aria-valuenow={completed} aria-valuemin={0} aria-valuemax={3}>
-              <span style={{ width: `${completed / 3 * 100}%` }} />
+              <span style={{ width: `${(completed / 3) * 100}%` }} />
             </div>
             <small>{completed} dari 3 Level dipelajari</small>
           </div>
+          
           <div className="footer-actions">
             <button className="previous" onClick={previous} disabled={active === 1}>
               <ChevronLeft /> Sebelumnya
